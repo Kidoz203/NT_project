@@ -1,6 +1,7 @@
 const express = require('express');
 const Post = require('../models/Post');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
@@ -199,6 +200,19 @@ router.post('/:postId/like', auth, async (req, res) => {
       // Like the post
       post.likes.push(userId);
       await post.save();
+      
+      // Create notification for like (only if not liking own post)
+      if (post.user.toString() !== userId.toString()) {
+        const notification = new Notification({
+          recipient: post.user,
+          sender: userId,
+          type: 'like',
+          post: post._id,
+          content: `${req.user.firstName} ${req.user.lastName} liked your post`
+        });
+        await notification.save();
+      }
+      
       res.json({ message: 'Post liked successfully', liked: true, likeCount: post.likes.length });
     } else {
       // Unlike the post
@@ -239,6 +253,19 @@ router.post('/:postId/comments', auth, async (req, res) => {
       .populate('comments.user', 'username firstName lastName profilePicture');
 
     const addedComment = updatedPost.comments[updatedPost.comments.length - 1];
+
+    // Create notification for comment (only if not commenting on own post)
+    if (post.user.toString() !== req.user._id.toString()) {
+      const notification = new Notification({
+        recipient: post.user,
+        sender: req.user._id,
+        type: 'comment',
+        post: post._id,
+        comment: addedComment._id,
+        content: `${req.user.firstName} ${req.user.lastName} commented on your post`
+      });
+      await notification.save();
+    }
 
     res.status(201).json({
       message: 'Comment added successfully',
@@ -303,6 +330,20 @@ router.post('/:postId/comments/:commentId/like', auth, async (req, res) => {
       // Like the comment
       comment.likes.push(userId);
       await post.save();
+      
+      // Create notification for comment like (only if not liking own comment)
+      if (comment.user.toString() !== userId.toString()) {
+        const notification = new Notification({
+          recipient: comment.user,
+          sender: userId,
+          type: 'comment_like',
+          post: post._id,
+          comment: comment._id,
+          content: `${req.user.firstName} ${req.user.lastName} liked your comment`
+        });
+        await notification.save();
+      }
+      
       res.json({ message: 'Comment liked successfully', liked: true, likeCount: comment.likes.length });
     } else {
       // Unlike the comment

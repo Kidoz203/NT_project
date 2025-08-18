@@ -8,9 +8,25 @@ export interface User {
   bio?: string;
   location?: string;
   website?: string;
+  coverPhoto?: string;
+  socialLinks?: {
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+    github?: string;
+  };
+  profileTheme?: 'default' | 'dark' | 'colorful' | 'minimal';
+  notificationSettings?: {
+    emailNotifications?: boolean;
+    pushNotifications?: boolean;
+    followNotifications?: boolean;
+    likeNotifications?: boolean;
+    commentNotifications?: boolean;
+  };
   followers: number;
   following: number;
   isPrivate: boolean;
+  accountStatus?: 'active' | 'deactivated' | 'suspended';
   createdAt: string;
 }
 
@@ -77,6 +93,21 @@ export interface UpdateProfileData {
   website?: string;
   isPrivate?: boolean;
   profilePicture?: File;
+  coverPhoto?: File;
+  socialLinks?: {
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+    github?: string;
+  };
+  profileTheme?: 'default' | 'dark' | 'colorful' | 'minimal';
+  notificationSettings?: {
+    emailNotifications?: boolean;
+    pushNotifications?: boolean;
+    followNotifications?: boolean;
+    likeNotifications?: boolean;
+    commentNotifications?: boolean;
+  };
 }
 
 export interface CreatePostData {
@@ -102,4 +133,36 @@ export interface PaginationData {
 export interface PostsResponse {
   posts: Post[];
   pagination: PaginationData;
+}
+
+export interface Notification {
+  _id: string;
+  recipient: string;
+  sender: {
+    _id: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    profilePicture?: string;
+  };
+  type: 'follow' | 'unfollow' | 'like' | 'comment' | 'comment_like';
+  post?: {
+    _id: string;
+    content: string;
+    image?: string;
+  };
+  comment?: string;
+  read: boolean;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NotificationsResponse {
+  notifications: Notification[];
+  pagination: PaginationData;
+}
+
+export interface UnreadCountResponse {
+  unreadCount: number;
 }

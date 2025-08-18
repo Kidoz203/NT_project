@@ -201,25 +201,45 @@ export const Divider = styled.hr`
   margin: 20px 0;
 `;
 
-export const Modal = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+export const DropdownContainer = styled.div`
+  position: relative;
+  display: inline-block;
 `;
 
-export const ModalContent = styled.div`
+export const DropdownMenu = styled.div<{ isOpen: boolean }>`
+  position: absolute;
+  top: 100%;
+  right: 0;
   background: white;
-  border-radius: 16px;
-  max-width: 600px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e1e8ed;
+  min-width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+  display: ${({ isOpen }) => isOpen ? 'block' : 'none'};
+`;
+
+export const DropdownItem = styled.button<{ danger?: boolean }>`
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 14px;
+  color: ${({ danger }) => danger ? '#e0245e' : '#14171a'};
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  &:hover {
+    background-color: ${({ danger }) => danger ? 'rgba(224, 36, 94, 0.1)' : '#f7f9fa'};
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;

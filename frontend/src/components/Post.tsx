@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { apiClient } from '../utils/api';
 import { Post as PostType } from '../types';
+import ImageLightbox from './ImageLightbox';
 import {
   Card,
   Button,
@@ -298,6 +299,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCommentDeleteModal, setShowCommentDeleteModal] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+  const [showImageLightbox, setShowImageLightbox] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const likeMutation = useMutation({
@@ -452,7 +454,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
         <PostImage
           src={`http://localhost:5000${post.image}`}
           alt="Post image"
-          onClick={() => window.open(`http://localhost:5000${post.image}`, '_blank')}
+          onClick={() => setShowImageLightbox(true)}
         />
       )}
 
@@ -598,6 +600,17 @@ const Post: React.FC<PostProps> = ({ post }) => {
           </ModalActions>
         </ModalContent>
       </ModalOverlay>
+      
+      {/* Image Lightbox */}
+      {post.image && (
+        <ImageLightbox
+          src={`http://localhost:5000${post.image}`}
+          alt={`Post by ${post.user.firstName} ${post.user.lastName}`}
+          isOpen={showImageLightbox}
+          onClose={() => setShowImageLightbox(false)}
+          onDownload={() => console.log('Image downloaded')}
+        />
+      )}
     </PostCard>
   );
 };

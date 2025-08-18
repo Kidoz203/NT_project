@@ -54,6 +54,72 @@ const userSchema = new mongoose.Schema({
     maxlength: [200, 'Website cannot exceed 200 characters'],
     default: ''
   },
+  coverPhoto: {
+    type: String,
+    default: ''
+  },
+  socialLinks: {
+    twitter: {
+      type: String,
+      maxlength: [100, 'Twitter link cannot exceed 100 characters'],
+      default: ''
+    },
+    instagram: {
+      type: String,
+      maxlength: [100, 'Instagram link cannot exceed 100 characters'],
+      default: ''
+    },
+    linkedin: {
+      type: String,
+      maxlength: [100, 'LinkedIn link cannot exceed 100 characters'],
+      default: ''
+    },
+    github: {
+      type: String,
+      maxlength: [100, 'GitHub link cannot exceed 100 characters'],
+      default: ''
+    }
+  },
+  profileTheme: {
+    type: String,
+    enum: ['default', 'dark', 'colorful', 'minimal'],
+    default: 'default'
+  },
+  notificationSettings: {
+    emailNotifications: {
+      type: Boolean,
+      default: true
+    },
+    pushNotifications: {
+      type: Boolean,
+      default: true
+    },
+    followNotifications: {
+      type: Boolean,
+      default: true
+    },
+    likeNotifications: {
+      type: Boolean,
+      default: true
+    },
+    commentNotifications: {
+      type: Boolean,
+      default: true
+    }
+  },
+  blockedUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  closeFriends: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  accountStatus: {
+    type: String,
+    enum: ['active', 'deactivated', 'suspended'],
+    default: 'active'
+  },
   followers: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

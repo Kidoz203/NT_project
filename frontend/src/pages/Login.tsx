@@ -18,7 +18,7 @@ const LoginContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1da1f2 0%, #14171a 100%);
+  background: linear-gradient(135deg, #fdfd00 0%,rgb(245, 245, 245) 100%);
 `;
 
 const LoginCard = styled(Card)`
@@ -28,9 +28,10 @@ const LoginCard = styled(Card)`
 `;
 
 const Title = styled.h1`
-  color: #14171a;
+  color:rgb(0, 0, 0);
   margin-bottom: 30px;
   font-size: 28px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 `;
 
 const Form = styled.form`

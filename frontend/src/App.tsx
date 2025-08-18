@@ -9,6 +9,8 @@ import LoginPage from './pages/Login';
 import RegisterPage from './pages/Register';
 import HomePage from './pages/Home';
 import ProfilePage from './pages/Profile';
+import EditProfilePage from './pages/EditProfile';
+import NotificationsPage from './pages/Notifications';
 import { GlobalStyle } from './styles/GlobalStyles';
 
 const queryClient = new QueryClient({
@@ -78,6 +80,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/edit-profile"
+              element={
+                <ProtectedRoute>
+                  <EditProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <NotificationsPage />
                 </ProtectedRoute>
               }
             />

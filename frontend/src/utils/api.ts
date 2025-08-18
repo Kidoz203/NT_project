@@ -7,7 +7,9 @@ import {
   Post,
   PostsResponse,
   CreatePostData,
-  UpdateProfileData
+  UpdateProfileData,
+  NotificationsResponse,
+  UnreadCountResponse
 } from '../types';
 
 class ApiClient {
@@ -75,8 +77,10 @@ class ApiClient {
     
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined) {
-        if (key === 'profilePicture' && value instanceof File) {
+        if ((key === 'profilePicture' || key === 'coverPhoto') && value instanceof File) {
           formData.append(key, value);
+        } else if (key === 'socialLinks' || key === 'notificationSettings') {
+          formData.append(key, JSON.stringify(value));
         } else {
           formData.append(key, String(value));
         }
@@ -182,6 +186,73 @@ class ApiClient {
 
   async likeComment(postId: string, commentId: string): Promise<{ message: string; liked: boolean; likeCount: number }> {
     const response = await this.client.post<{ message: string; liked: boolean; likeCount: number }>(`/posts/${postId}/comments/${commentId}/like`);
+    return response.data;
+  }
+
+  // Notification endpoints
+  async getNotifications(page: number = 1, limit: number = 20): Promise<NotificationsResponse> {
+    const response = await this.client.get<NotificationsResponse>(`/notifications?page=${page}&limit=${limit}`);
+    return response.data;
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<{ message: string }> {
+    const response = await this.client.put<{ message: string }>(`/notifications/${notificationId}/read`);
+    return response.data;
+  }
+
+  async markAllNotificationsAsRead(): Promise<{ message: string }> {
+    const response = await this.client.put<{ message: string }>('/notifications/read-all');
+    return response.data;
+  }
+
+  async getUnreadNotificationCount(): Promise<UnreadCountResponse> {
+    const response = await this.client.get<UnreadCountResponse>('/notifications/unread-count');
+    return response.data;
+  }
+
+  async deleteNotification(notificationId: string): Promise<{ message: string }> {
+    const response = await this.client.delete<{ message: string }>(`/notifications/${notificationId}`);
+    return response.data;
+  }
+
+  // User management endpoints
+  async blockUser(userId: string): Promise<{ message: string }> {
+    const response = await this.client.post<{ message: string }>(`/users/${userId}/block`);
+    return response.data;
+  }
+
+  async unblockUser(userId: string): Promise<{ message: string }> {
+    const response = await this.client.post<{ message: string }>(`/users/${userId}/unblock`);
+    return response.data;
+  }
+
+  async addCloseFriend(userId: string): Promise<{ message: string }> {
+    const response = await this.client.post<{ message: string }>(`/users/${userId}/close-friend`);
+    return response.data;
+  }
+
+  async removeCloseFriend(userId: string): Promise<{ message: string }> {
+    const response = await this.client.post<{ message: string }>(`/users/${userId}/remove-close-friend`);
+    return response.data;
+  }
+
+  async getBlockedUsers(): Promise<{ blockedUsers: User[] }> {
+    const response = await this.client.get<{ blockedUsers: User[] }>('/users/blocked');
+    return response.data;
+  }
+
+  async getCloseFriends(): Promise<{ closeFriends: User[] }> {
+    const response = await this.client.get<{ closeFriends: User[] }>('/users/close-friends');
+    return response.data;
+  }
+
+  async deactivateAccount(): Promise<{ message: string }> {
+    const response = await this.client.put<{ message: string }>('/users/deactivate');
+    return response.data;
+  }
+
+  async reactivateAccount(): Promise<{ message: string }> {
+    const response = await this.client.put<{ message: string }>('/users/reactivate');
     return response.data;
   }
 }

@@ -2,10 +2,9 @@ import React from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
 import Feed from '../components/Feed';
+import Navigation from '../components/Navigation';
 import { 
-  Container, 
-  Button, 
-  Avatar
+  Container
 } from '../components/common/StyledComponents';
 
 const Header = styled.header`
@@ -24,9 +23,10 @@ const HeaderContent = styled.div`
 `;
 
 const Logo = styled.h1`
-  color: #1da1f2;
-  font-size: 24px;
+  color:rgb(253, 253, 0);
+  font-size: 30px;
   font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 `;
 
 const UserSection = styled.div`
@@ -58,36 +58,9 @@ const MainContent = styled.main`
 
 
 const HomePage: React.FC = () => {
-  const { user, logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-  };
-
   return (
     <>
-      <Header>
-        <Container>
-          <HeaderContent>
-            <Logo>Social Media</Logo>
-            <UserSection>
-              <UserInfo>
-                <UserName>{user?.firstName} {user?.lastName}</UserName>
-                <UserHandle>@{user?.username}</UserHandle>
-              </UserInfo>
-              <Avatar 
-                src={user?.profilePicture ? `http://localhost:5000${user.profilePicture}` : '/default-avatar.png'} 
-                alt="Profile"
-                size="40px"
-              />
-              <Button variant="secondary" onClick={handleLogout}>
-                Logout
-              </Button>
-            </UserSection>
-          </HeaderContent>
-        </Container>
-      </Header>
-
+      <Navigation />
       <MainContent>
         <Container>
           <Feed />

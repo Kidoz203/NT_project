@@ -12,6 +12,8 @@ const app = express();
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const postRoutes = require('./routes/posts');
+const notificationRoutes = require('./routes/notifications');
+const friendRequestRoutes = require('./routes/friendRequests');
 
 // Middleware
 app.use(helmet());
@@ -40,6 +42,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/friend-requests', friendRequestRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
@@ -52,22 +56,62 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => {
-  console.log('Connected to MongoDB');
-})
-.catch((error) => {
-  console.error('MongoDB connection error:', error);
-  process.exit(1);
+// MongoDB connection with retry logic
+const connectDB = async () => {
+  try {
+    // Remove deprecated options
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error('❌ MongoDB connection error:', error.message);
+    console.log('🔄 Retrying MongoDB connection in 5 seconds...');
+    setTimeout(connectDB, 5000);
+  }
+};
+
+// Handle MongoDB connection events
+mongoose.connection.on('connected', () => {
+  console.log('✅ MongoDB connected successfully');
 });
 
+mongoose.connection.on('error', (err) => {
+  console.error('❌ MongoDB connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.log('⚠️  MongoDB disconnected. Attempting to reconnect...');
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('\n🛑 Shutting down server...');
+  
+  try {
+    await mongoose.connection.close();
+    console.log('✅ MongoDB connection closed');
+    process.exit(0);
+  } catch (err) {
+    console.error('❌ Error during shutdown:', err);
+    process.exit(1);
+  }
+});
+
+// Start server
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+  console.log(`📡 API URL: http://localhost:${PORT}`);
 });
+
+// Handle server shutdown
+process.on('SIGTERM', () => {
+  console.log('\n🛑 SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    console.log('✅ Server closed');
+  });
+});
+
+// Connect to MongoDB
+connectDB();

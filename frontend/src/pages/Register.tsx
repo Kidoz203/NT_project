@@ -19,7 +19,7 @@ const RegisterContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1da1f2 0%, #14171a 100%);
+  background: linear-gradient(135deg, #fdfd00 0%,rgb(249, 249, 249) 100%);
 `;
 
 const RegisterCard = styled(Card)`
@@ -205,7 +205,7 @@ const RegisterPage: React.FC = () => {
 
           <Flex justify="center" style={{ marginTop: '20px' }}>
             <span>Already have an account? </span>
-            <Link to="/login" style={{ color: '#1da1f2', marginLeft: '5px' }}>
+            <Link to="/login" style={{ color: 'ffff33', marginLeft: '5px' }}>
               Sign in
             </Link>
           </Flex>
