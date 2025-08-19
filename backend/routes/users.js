@@ -220,7 +220,17 @@ router.get('/search/:query', async (req, res) => {
     .select('username firstName lastName profilePicture bio')
     .limit(20);
 
-    res.json({ users });
+    // Map _id to id for frontend compatibility
+    const mappedUsers = users.map(user => ({
+      id: user._id,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profilePicture: user.profilePicture,
+      bio: user.bio
+    }));
+
+    res.json({ users: mappedUsers });
   } catch (error) {
     console.error('Search users error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -395,6 +405,56 @@ router.get('/blocked', auth, async (req, res) => {
     res.json({ blockedUsers: user.blockedUsers });
   } catch (error) {
     console.error('Get blocked users error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get user's friends list
+router.get('/:userId/friends', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    const user = await User.findById(userId)
+      .populate({
+        path: 'following',
+        select: 'username firstName lastName profilePicture bio',
+        options: {
+          skip: skip,
+          limit: limit
+        }
+      });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const totalFriends = user.following.length;
+
+    // Map _id to id for frontend compatibility
+    const mappedFriends = user.following.map(friend => ({
+      id: friend._id,
+      username: friend.username,
+      firstName: friend.firstName,
+      lastName: friend.lastName,
+      profilePicture: friend.profilePicture,
+      bio: friend.bio
+    }));
+
+    res.json({ 
+      friends: mappedFriends,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalFriends / limit),
+        totalFriends,
+        hasNextPage: page < Math.ceil(totalFriends / limit),
+        hasPrevPage: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Get friends error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

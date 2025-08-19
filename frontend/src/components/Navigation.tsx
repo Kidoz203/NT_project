@@ -175,7 +175,11 @@ const Navigation: React.FC = () => {
             🏠 Home
           </NavLink>
           
-          <NotificationButton 
+          <NavLink to="/friends" active={isActive('/friends')}>
+            👥 Friends
+          </NavLink>
+          
+          <NotificationButton
             as={Link} 
             to="/notifications"
             hasNotifications={unreadCount > 0}

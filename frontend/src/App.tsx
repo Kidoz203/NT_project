@@ -11,6 +11,7 @@ import HomePage from './pages/Home';
 import ProfilePage from './pages/Profile';
 import EditProfilePage from './pages/EditProfile';
 import NotificationsPage from './pages/Notifications';
+import FriendsPage from './pages/Friends';
 import { GlobalStyle } from './styles/GlobalStyles';
 
 const queryClient = new QueryClient({
@@ -96,6 +97,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/friends"
+              element={
+                <ProtectedRoute>
+                  <FriendsPage />
                 </ProtectedRoute>
               }
             />

@@ -255,6 +255,60 @@ class ApiClient {
     const response = await this.client.put<{ message: string }>('/users/reactivate');
     return response.data;
   }
+
+  // Friend Request endpoints
+  async sendFriendRequest(receiverId: string, message?: string): Promise<{ message: string }> {
+    const response = await this.client.post<{ message: string }>('/friend-requests', {
+      receiverId,
+      message
+    });
+    return response.data;
+  }
+
+  async getReceivedFriendRequests(page: number = 1, limit: number = 10): Promise<{ requests: any[], pagination: any }> {
+    const response = await this.client.get<{ requests: any[], pagination: any }>(`/friend-requests/received?page=${page}&limit=${limit}`);
+    return response.data;
+  }
+
+  async getSentFriendRequests(page: number = 1, limit: number = 10): Promise<{ requests: any[], pagination: any }> {
+    const response = await this.client.get<{ requests: any[], pagination: any }>(`/friend-requests/sent?page=${page}&limit=${limit}`);
+    return response.data;
+  }
+
+  async acceptFriendRequest(requestId: string): Promise<{ message: string }> {
+    const response = await this.client.put<{ message: string }>(`/friend-requests/${requestId}/accept`);
+    return response.data;
+  }
+
+  async rejectFriendRequest(requestId: string): Promise<{ message: string }> {
+    const response = await this.client.put<{ message: string }>(`/friend-requests/${requestId}/reject`);
+    return response.data;
+  }
+
+  async cancelFriendRequest(requestId: string): Promise<{ message: string }> {
+    const response = await this.client.delete<{ message: string }>(`/friend-requests/${requestId}`);
+    return response.data;
+  }
+
+  async getFriendSuggestions(limit: number = 10): Promise<{ suggestions: User[] }> {
+    const response = await this.client.get<{ suggestions: User[] }>(`/friend-requests/suggestions?limit=${limit}`);
+    return response.data;
+  }
+
+  async getMutualFriends(userId: string): Promise<{ mutualFriends: User[], count: number }> {
+    const response = await this.client.get<{ mutualFriends: User[], count: number }>(`/friend-requests/mutual/${userId}`);
+    return response.data;
+  }
+
+  async getUserFriends(userId: string, page: number = 1, limit: number = 20): Promise<{ friends: User[], pagination: any }> {
+    const response = await this.client.get<{ friends: User[], pagination: any }>(`/users/${userId}/friends?page=${page}&limit=${limit}`);
+    return response.data;
+  }
+
+  async removeFriend(userId: string): Promise<{ message: string }> {
+    const response = await this.client.delete<{ message: string }>(`/friend-requests/friend/${userId}`);
+    return response.data;
+  }
 }
 
 export const apiClient = new ApiClient();

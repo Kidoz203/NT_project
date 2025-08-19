@@ -76,8 +76,8 @@ const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
+  const [friendshipStatus, setFriendshipStatus] = useState<'none' | 'pending' | 'friends'>('none');
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     if (username) {
@@ -92,11 +92,11 @@ const ProfilePage: React.FC = () => {
       const response = await apiClient.getUserProfile(username!);
       setUser(response.user);
       
-      // Check if current user is following this user
+      // Check friendship status
       if (currentUser && response.user.id !== currentUser.id) {
-        // You might want to add an API endpoint to check follow status
-        // For now, we'll assume not following
-        setIsFollowing(false);
+        // Check if they are already friends (this would need a proper API endpoint)
+        // For now, we'll assume no friendship
+        setFriendshipStatus('none');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load user profile');
@@ -105,24 +105,27 @@ const ProfilePage: React.FC = () => {
     }
   };
 
-  const handleFollow = async () => {
+  const handleFriendAction = async () => {
     if (!currentUser || !user) return;
     
     try {
-      setFollowLoading(true);
-      if (isFollowing) {
+      setActionLoading(true);
+      
+      if (friendshipStatus === 'friends') {
+        // Remove friend (unfollow)
         await apiClient.unfollowUser(user.id);
-        setIsFollowing(false);
-      } else {
-        await apiClient.followUser(user.id);
-        setIsFollowing(true);
+        setFriendshipStatus('none');
+      } else if (friendshipStatus === 'none') {
+        // Send friend request
+        await apiClient.sendFriendRequest(user.id);
+        setFriendshipStatus('pending');
       }
-      // Reload user profile to get updated follower count
-      await loadUserProfile();
+      // Note: 'pending' status doesn't have an action - user must wait
+      
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to follow/unfollow user');
+      setError(err.response?.data?.message || 'Failed to perform friend action');
     } finally {
-      setFollowLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -180,11 +183,15 @@ const ProfilePage: React.FC = () => {
               {!isOwnProfile && currentUser && (
                 <Flex justify="center" style={{ marginTop: '20px' }}>
                   <Button 
-                    onClick={handleFollow}
-                    disabled={followLoading}
-                    variant={isFollowing ? 'secondary' : 'primary'}
+                    onClick={handleFriendAction}
+                    disabled={actionLoading || friendshipStatus === 'pending'}
+                    variant={friendshipStatus === 'friends' ? 'secondary' : 'primary'}
                   >
-                    {followLoading ? 'Loading...' : (isFollowing ? 'Unfollow' : 'Follow')}
+                    {actionLoading ? 'Loading...' : 
+                     friendshipStatus === 'friends' ? 'Remove Friend' :
+                     friendshipStatus === 'pending' ? 'Request Sent' :
+                     'Add Friend'
+                    }
                   </Button>
                 </Flex>
               )}

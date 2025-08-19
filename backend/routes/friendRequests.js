@@ -1,10 +1,28 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const FriendRequest = require('../models/FriendRequest');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const auth = require('../middleware/auth');
 
 const router = express.Router();
+
+// Helper function to transform friend request data
+const transformFriendRequest = (request) => {
+  const requestObj = request.toObject ? request.toObject() : request;
+  return {
+    ...requestObj,
+    id: requestObj._id,
+    sender: requestObj.sender._id ? {
+      ...requestObj.sender,
+      id: requestObj.sender._id
+    } : requestObj.sender,
+    receiver: requestObj.receiver._id ? {
+      ...requestObj.receiver,
+      id: requestObj.receiver._id
+    } : requestObj.receiver
+  };
+};
 
 // Send friend request
 router.post('/', auth, async (req, res) => {
@@ -92,7 +110,7 @@ router.get('/received', auth, async (req, res) => {
     });
 
     res.json({
-      requests,
+      requests: requests.map(transformFriendRequest),
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(totalRequests / limit),
@@ -129,7 +147,7 @@ router.get('/sent', auth, async (req, res) => {
     });
 
     res.json({
-      requests,
+      requests: requests.map(transformFriendRequest),
       pagination: {
         currentPage: page,
         totalPages: Math.ceil(totalRequests / limit),
@@ -254,6 +272,19 @@ router.get('/suggestions', auth, async (req, res) => {
     const currentUser = await User.findById(req.user._id);
     const limit = parseInt(req.query.limit) || 10;
 
+    // Get users who have pending friend requests (sent or received)
+    const pendingRequests = await FriendRequest.find({
+      $or: [
+        { sender: req.user._id, status: 'pending' },
+        { receiver: req.user._id, status: 'pending' }
+      ]
+    });
+
+    const usersWithPendingRequests = [
+      ...pendingRequests.map(req => req.sender.toString()),
+      ...pendingRequests.map(req => req.receiver.toString())
+    ];
+
     // Get users who are friends with current user's friends (mutual connections)
     const friendsOfFriends = await User.aggregate([
       // Match friends of current user
@@ -270,14 +301,15 @@ router.get('/suggestions', auth, async (req, res) => {
         }
       },
       { $unwind: '$friend' },
-      // Exclude current user and already following users
+      // Exclude current user, already following users, and users with pending requests
       {
         $match: {
           'friend._id': { 
             $nin: [
               ...currentUser.following,
               ...currentUser.blockedUsers,
-              currentUser._id
+              currentUser._id,
+              ...usersWithPendingRequests.map(id => mongoose.Types.ObjectId(id))
             ]
           }
         }
@@ -296,7 +328,7 @@ router.get('/suggestions', auth, async (req, res) => {
       // Project final structure
       {
         $project: {
-          _id: '$user._id',
+          id: '$user._id',
           username: '$user.username',
           firstName: '$user.firstName',
           lastName: '$user.lastName',
@@ -314,7 +346,8 @@ router.get('/suggestions', auth, async (req, res) => {
           ...currentUser.following,
           ...currentUser.blockedUsers,
           currentUser._id,
-          ...friendsOfFriends.map(f => f._id)
+          ...friendsOfFriends.map(f => f._id),
+          ...usersWithPendingRequests.map(id => mongoose.Types.ObjectId(id))
         ]
       }
     })
@@ -324,12 +357,59 @@ router.get('/suggestions', auth, async (req, res) => {
 
     const suggestions = [
       ...friendsOfFriends,
-      ...recentUsers.map(user => ({ ...user.toObject(), mutualFriends: 0 }))
+      ...recentUsers.map(user => ({ 
+        id: user._id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        profilePicture: user.profilePicture,
+        bio: user.bio,
+        mutualFriends: 0 
+      }))
     ].slice(0, limit);
 
     res.json({ suggestions });
   } catch (error) {
     console.error('Get friend suggestions error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Remove friend (unfriend)
+router.delete('/friend/:userId', auth, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const currentUserId = req.user._id;
+
+    if (userId === currentUserId.toString()) {
+      return res.status(400).json({ message: 'You cannot remove yourself as a friend' });
+    }
+
+    const otherUser = await User.findById(userId);
+    if (!otherUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const currentUser = await User.findById(currentUserId);
+    
+    // Check if they are actually friends
+    if (!currentUser.following.includes(userId)) {
+      return res.status(400).json({ message: 'You are not friends with this user' });
+    }
+
+    // Remove each other from following/followers lists
+    currentUser.following = currentUser.following.filter(id => id.toString() !== userId);
+    currentUser.followers = currentUser.followers.filter(id => id.toString() !== userId);
+    
+    otherUser.following = otherUser.following.filter(id => id.toString() !== currentUserId.toString());
+    otherUser.followers = otherUser.followers.filter(id => id.toString() !== currentUserId.toString());
+
+    await currentUser.save();
+    await otherUser.save();
+
+    res.json({ message: 'Friend removed successfully' });
+  } catch (error) {
+    console.error('Remove friend error:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

@@ -157,9 +157,21 @@ const NotificationsPage: React.FC = () => {
   };
 
   const handleNotificationClick = (notification: Notification) => {
+    // Handle different notification types appropriately
     if (notification.post) {
+      // For post-related notifications (like, comment), go to the post
       navigate(`/post/${notification.post._id}`);
     } else if (notification.type === 'follow' || notification.type === 'unfollow') {
+      // For follow notifications, go to sender's profile
+      navigate(`/profile/${notification.sender.username}`);
+    } else if (notification.type === 'friend_request') {
+      // For friend requests, go to the friends page to see pending requests
+      navigate('/friends?tab=received');
+    } else if (notification.type === 'friend_accept') {
+      // For friend acceptance, go to sender's profile (the person who accepted)
+      navigate(`/profile/${notification.sender.username}`);
+    } else {
+      // Default: go to sender's profile
       navigate(`/profile/${notification.sender.username}`);
     }
   };

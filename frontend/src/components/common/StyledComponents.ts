@@ -194,6 +194,19 @@ export const Badge = styled.span<{ color?: string }>`
   font-weight: 600;
 `;
 
+export const PageTitle = styled.h1`
+  font-size: 2rem;
+  color: #14171a;
+  margin: 0 0 2rem 0;
+  font-weight: 700;
+  text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+`;
+
 export const Divider = styled.hr`
   border: none;
   height: 1px;

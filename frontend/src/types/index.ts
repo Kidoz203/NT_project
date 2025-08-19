@@ -145,7 +145,7 @@ export interface Notification {
     lastName: string;
     profilePicture?: string;
   };
-  type: 'follow' | 'unfollow' | 'like' | 'comment' | 'comment_like';
+  type: 'follow' | 'unfollow' | 'like' | 'comment' | 'comment_like' | 'friend_request' | 'friend_accept';
   post?: {
     _id: string;
     content: string;
@@ -165,4 +165,29 @@ export interface NotificationsResponse {
 
 export interface UnreadCountResponse {
   unreadCount: number;
+}
+
+export interface FriendRequest {
+  _id?: string;
+  id: string;
+  sender: User;
+  receiver: User;
+  status: 'pending' | 'accepted' | 'rejected' | 'cancelled';
+  message?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FriendRequestsResponse {
+  requests: FriendRequest[];
+  pagination: PaginationData;
+}
+
+export interface FriendsResponse {
+  friends: User[];
+  pagination: PaginationData;
+}
+
+export interface FriendSuggestionsResponse {
+  suggestions: (User & { mutualFriends?: number })[];
 }
